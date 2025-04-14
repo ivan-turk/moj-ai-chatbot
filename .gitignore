@@ -1,0 +1,26 @@
+# Ignoriraj sistemske datoteke
+.DS_Store
+Thumbs.db
+
+# Ignoriraj Node / build alate
+node_modules/
+dist/
+build/
+npm-debug.log
+
+# Ignoriraj konfiguracije editora
+.vscode/
+.idea/
+*.swp
+
+# Ignoriraj potencijalne backup datoteke
+*.bak
+*.tmp
+*.log
+
+# Ignoriraj OS-specific stvari
+ehthumbs.db
+desktop.ini
+
+# Ignoriraj git metapodatke ako slučajno dođu
+*.orig
