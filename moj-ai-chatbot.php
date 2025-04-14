@@ -48,7 +48,7 @@ add_action('admin_init', 'mojchat_postavke_init');
 function mojchat_postavke_init() {
     // Grupa
     register_setting('mojchat_postavke_grupa', 'mojchat_api_key');
-    register_setting('mojchat_postavke_grupa', 'mojchat_naziv_firme');
+    register_setting('mojchat_postavke_grupa', 'mojchat_naziv_tvrtke');
     register_setting('mojchat_postavke_grupa', 'mojchat_popis_proizvoda');
     register_setting('mojchat_postavke_grupa', 'mojchat_fallback_poruka');
 
@@ -57,7 +57,7 @@ function mojchat_postavke_init() {
 
     // Polja
     add_settings_field('mojchat_api_key', 'OpenAI API ključ', 'mojchat_api_key_callback', 'mojchat_postavke', 'mojchat_sekcija');
-    add_settings_field('mojchat_naziv_firme', 'Naziv poduzeća', 'mojchat_naziv_firme_callback', 'mojchat_postavke', 'mojchat_sekcija');
+    add_settings_field('mojchat_naziv_tvrtke', 'Naziv tvrtke', 'mojchat_naziv_tvrtke_callback', 'mojchat_postavke', 'mojchat_sekcija');
     add_settings_field('mojchat_popis_proizvoda', 'Popis proizvoda', 'mojchat_popis_proizvoda_callback', 'mojchat_postavke', 'mojchat_sekcija');
     add_settings_field('mojchat_fallback_poruka', 'Poruka kupcu za nevezana pitanja', 'mojchat_fallback_poruka_callback', 'mojchat_postavke', 'mojchat_sekcija');
 }
@@ -67,9 +67,9 @@ function mojchat_api_key_callback() {
     echo '<input type="text" name="mojchat_api_key" value="' . $value . '" size="50">';
 }
 
-function mojchat_naziv_firme_callback() {
-    $value = esc_attr(get_option('mojchat_naziv_firme'));
-    echo '<input type="text" name="mojchat_naziv_firme" value="' . $value . '" size="50">';
+function mojchat_naziv_tvrtke_callback() {
+    $value = esc_attr(get_option('mojchat_naziv_tvrtke'));
+    echo '<input type="text" name="mojchat_naziv_tvrtke" value="' . $value . '" size="50">';
 }
 
 function mojchat_popis_proizvoda_callback() {
@@ -80,5 +80,75 @@ function mojchat_popis_proizvoda_callback() {
 function mojchat_fallback_poruka_callback() {
     $value = esc_textarea(get_option('mojchat_fallback_poruka'));
     echo '<textarea name="mojchat_fallback_poruka" rows="3" cols="50">' . $value . '</textarea>';
+}
+
+
+//JS i CSS hooks
+add_action('wp_enqueue_scripts', 'mojchat_ucitaj_assets');
+
+function mojchat_ucitaj_assets() {
+    wp_enqueue_style('mojchat-style', plugin_dir_url(__FILE__) . 'public/chatbot.css');
+    wp_enqueue_script('mojchat-script', plugin_dir_url(__FILE__) . 'public/chatbot.js', array('jquery'), null, true);
+
+    // Dodaj AJAX URL
+    wp_localize_script('mojchat-script', 'mojchat_ajax', array(
+        'ajax_url' => admin_url('admin-ajax.php')
+    ));
+}
+
+
+// Backend handler koji vraća odgovore iz OpenAI-a
+
+add_action('wp_ajax_mojchat_posalji_upit', 'mojchat_posalji_upit');
+add_action('wp_ajax_nopriv_mojchat_posalji_upit', 'mojchat_posalji_upit');
+
+function mojchat_posalji_upit() {
+    $poruka = sanitize_text_field($_POST['poruka'] ?? '');
+
+    if (empty($poruka)) {
+        wp_send_json_error(['odgovor' => 'Greška: prazna poruka.']);
+    }
+
+    // Uzmi API ključ i ostale podatke
+    $api_key = get_option('mojchat_api_key');
+    $naziv_tvrtke = get_option('mojchat_naziv_tvrtke');
+    $proizvodi = get_option('mojchat_popis_proizvoda');
+    $fallback = get_option('mojchat_fallback_poruka');
+
+    if (!$api_key) {
+        wp_send_json_success(['odgovor' => 'API ključ nije postavljen.']);
+    }
+
+    // Sastavi prompt
+    $prompt = "Ti si AI agent podrške za tvrtku $naziv_tvrtke. 
+Odgovaraj samo na pitanja vezana uz sljedeće proizvode: $proizvodi. 
+Ako pitanje nije vezano uz njih, reci: \"$fallback\". 
+Pitanje korisnika: $poruka";
+
+    // Pozovi OpenAI API
+    $response = wp_remote_post('https://api.openai.com/v1/chat/completions', [
+        'headers' => [
+            'Content-Type'  => 'application/json',
+            'Authorization' => 'Bearer ' . $api_key,
+        ],
+        'body' => json_encode([
+            'model' => 'gpt-3.5-turbo-0125',
+            'messages' => [
+                ['role' => 'system', 'content' => 'Ti si korisnička podrška.'],
+                ['role' => 'user', 'content' => $prompt]
+            ],
+            'temperature' => 0.7,
+            'max_tokens' => 300
+        ])
+    ]);
+
+    if (is_wp_error($response)) {
+        wp_send_json_success(['odgovor' => 'Greška u komunikaciji s OpenAI API-jem.']);
+    }
+
+    $body = json_decode(wp_remote_retrieve_body($response), true);
+    $odgovor = $body['choices'][0]['message']['content'] ?? 'Nema odgovora.';
+
+    wp_send_json_success(['odgovor' => $odgovor]);
 }
 

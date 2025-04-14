@@ -1,0 +1,46 @@
+#mojchat-bubble {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #0073aa;
+  color: white;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  text-align: center;
+  line-height: 50px;
+  cursor: pointer;
+  font-size: 24px;
+  z-index: 9999;
+}
+#mojchat-box {
+  display: none;
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 300px;
+  height: 400px;
+  background: white;
+  border: 1px solid #ccc;
+  z-index: 9999;
+  padding: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+#mojchat-box.open {
+  display: block;
+}
+#mojchat-header {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+#mojchat-messages {
+  height: 300px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+#mojchat-input {
+  width: 100%;
+  padding: 5px;
+  font-size: 14px;
+}
