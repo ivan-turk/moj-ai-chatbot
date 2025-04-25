@@ -5,18 +5,38 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const chatBox = document.createElement("div");
   chatBox.id = "mojchat-box";
+
   chatBox.innerHTML = `
         <div id="mojchat-header">AI Chatbot</div>
         <div id="mojchat-messages"></div>
         <input type="text" id="mojchat-input" placeholder="Upiši pitanje..." />
     `;
 
+  chatBox.style.display = "none"; // početno skriveno
+
   document.body.appendChild(chatButton);
   document.body.appendChild(chatBox);
 
   chatButton.onclick = () => {
-    chatBox.classList.toggle("open");
+    const jeOtvoreno = chatBox.classList.contains("open");
+
+    if (jeOtvoreno) {
+      chatBox.classList.remove("open");
+      chatBox.style.display = "none";
+    } else {
+      chatBox.classList.add("open");
+      chatBox.style.display = "flex";
+    }
   };
+
+  document.addEventListener("click", function (event) {
+    const kliknutJeUnutar =
+      chatBox.contains(event.target) || chatButton.contains(event.target);
+    if (!kliknutJeUnutar) {
+      chatBox.classList.remove("open");
+      chatBox.style.display = "none";
+    }
+  });
 
   const input = document.getElementById("mojchat-input");
   input.addEventListener("keypress", function (e) {
@@ -37,7 +57,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function dodajPoruku(tko, poruka) {
     const div = document.createElement("div");
-    div.innerHTML = `<strong>${tko}:</strong> ${poruka}`;
+    div.className =
+      "mojchat-msg " + (tko === "Vi" ? "mojchat-user" : "mojchat-ai");
+    div.textContent = poruka;
     document.getElementById("mojchat-messages").appendChild(div);
+
+    const messages = document.getElementById("mojchat-messages");
+    messages.scrollTop = messages.scrollHeight;
   }
 });

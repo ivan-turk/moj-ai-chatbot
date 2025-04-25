@@ -87,8 +87,9 @@ function mojchat_fallback_poruka_callback() {
 add_action('wp_enqueue_scripts', 'mojchat_ucitaj_assets');
 
 function mojchat_ucitaj_assets() {
-    wp_enqueue_style('mojchat-style', plugin_dir_url(__FILE__) . 'public/chatbot.css');
-    wp_enqueue_script('mojchat-script', plugin_dir_url(__FILE__) . 'public/chatbot.js', array('jquery'), null, true);
+    wp_enqueue_style('mojchat-style', plugin_dir_url(__FILE__) . 'public/chatbot.css', array(), time());
+
+    wp_enqueue_script('mojchat-script', plugin_dir_url(__FILE__) . 'public/chatbot.js', array('jquery'), time(), true);
 
     // Dodaj AJAX URL
     wp_localize_script('mojchat-script', 'mojchat_ajax', array(
