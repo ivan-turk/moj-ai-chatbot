@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: Moj AI Chatbot
+Plugin Name: Moj AI Chatbot 2
 Description: Jednostavan AI chatbot plugin za odgovaranje na pitanja o proizvodima (maslinovo ulje, pekmezi, trešnje).
 Version: 1.0
 Author: Ivan Turk
