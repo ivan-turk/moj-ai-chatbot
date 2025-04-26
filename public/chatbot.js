@@ -6,11 +6,21 @@ document.addEventListener("DOMContentLoaded", function () {
   const chatBox = document.createElement("div");
   chatBox.id = "mojchat-box";
 
+  // Učitavanje avatara iz WP postavki (ako postoji)
+  const avatarUrl = mojchat_ajax.avatar_url || "";
+
   chatBox.innerHTML = `
-        <div id="mojchat-header">AI Chatbot</div>
-        <div id="mojchat-messages"></div>
-        <input type="text" id="mojchat-input" placeholder="Upiši pitanje..." />
-    `;
+    <div id="mojchat-header">
+      ${
+        avatarUrl
+          ? `<img src="${avatarUrl}" id="mojchat-avatar" alt="Maslinko AI">`
+          : ""
+      }
+      <span>Maslinko AI</span>
+    </div>
+    <div id="mojchat-messages"></div>
+    <input type="text" id="mojchat-input" placeholder="Upiši pitanje..." />
+  `;
 
   chatBox.style.display = "none"; // početno skriveno
 
@@ -26,6 +36,11 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
       chatBox.classList.add("open");
       chatBox.style.display = "flex";
+
+      const messages = document.getElementById("mojchat-messages");
+      if (messages.childElementCount === 0) {
+        dodajPoruku("Maslinko AI", "Pozdrav, kako Vam mogu pomoći?");
+      }
     }
   };
 
