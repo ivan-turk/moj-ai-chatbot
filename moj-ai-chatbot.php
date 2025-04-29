@@ -51,6 +51,7 @@ function mojchat_postavke_init() {
     register_setting('mojchat_postavke_grupa', 'mojchat_naziv_tvrtke');
     register_setting('mojchat_postavke_grupa', 'mojchat_popis_proizvoda');
     register_setting('mojchat_postavke_grupa', 'mojchat_fallback_poruka');
+    register_setting('mojchat_postavke_grupa', 'mojchat_avatar_url');
 
     // Sekcija
     add_settings_section('mojchat_sekcija', 'Opće postavke', null, 'mojchat_postavke');
@@ -60,7 +61,17 @@ function mojchat_postavke_init() {
     add_settings_field('mojchat_naziv_tvrtke', 'Naziv tvrtke', 'mojchat_naziv_tvrtke_callback', 'mojchat_postavke', 'mojchat_sekcija');
     add_settings_field('mojchat_popis_proizvoda', 'Popis proizvoda', 'mojchat_popis_proizvoda_callback', 'mojchat_postavke', 'mojchat_sekcija');
     add_settings_field('mojchat_fallback_poruka', 'Poruka kupcu za nevezana pitanja', 'mojchat_fallback_poruka_callback', 'mojchat_postavke', 'mojchat_sekcija');
+    add_settings_field('mojchat_avatar_url', 'URL slike avatara', 'mojchat_avatar_url_callback', 'mojchat_postavke', 'mojchat_sekcija');
 }
+
+function mojchat_avatar_url_callback() {
+    $value = esc_url(get_option('mojchat_avatar_url'));
+    echo '<input type="text" id="mojchat_avatar_url" name="mojchat_avatar_url" value="' . $value . '" size="50">';
+    echo '<button type="button" class="button" id="mojchat_upload_button">Odaberi sliku</button>';
+    echo '<p class="description">Kliknite "Odaberi sliku" za izbor iz WordPress Medija.</p>';
+}
+
+
 
 function mojchat_api_key_callback() {
     $value = esc_attr(get_option('mojchat_api_key'));
@@ -93,9 +104,23 @@ function mojchat_ucitaj_assets() {
 
     // Dodaj AJAX URL
     wp_localize_script('mojchat-script', 'mojchat_ajax', array(
-        'ajax_url' => admin_url('admin-ajax.php')
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'avatar_url' => esc_url(get_option('mojchat_avatar_url'))
     ));
+
+    // 👇 OVO ispod - samo za admin stranicu
+    if (is_admin()) {
+        wp_enqueue_media(); // Učitaj WordPress Media Library skriptu
+        wp_enqueue_script('mojchat-admin-script', plugin_dir_url(__FILE__) . 'public/admin.js', array('jquery'), time(), true);
+    }
+    
 }
+
+add_action('admin_enqueue_scripts', function() {
+    wp_enqueue_media();
+    wp_enqueue_script('mojchat-admin-script', plugin_dir_url(__FILE__) . 'public/admin.js', array('jquery'), time(), true);
+});
+
 
 
 // Backend handler koji vraća odgovore iz OpenAI-a
